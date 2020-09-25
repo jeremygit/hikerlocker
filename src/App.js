@@ -1,26 +1,46 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { BLEContext, BLEContextProvider } from './contexts/BLEContext';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BLEContextProvider>
+      <div className="App">
+        <AppMain />
+      </div>
+    </BLEContextProvider>
   );
+}
+
+function AppMain() {
+
+  const bleContext = useContext(BLEContext);
+
+  const onClickScan = (evt) => {
+    bleContext.startScan(evt);
+  }
+
+  return (
+    <main>
+      <h2>Hikerlocker {bleContext.connectionState}</h2>
+      <button onClick={onClickScan}>Scan</button>
+      {
+        bleContext.connectionState == 2
+        ? bleContext.smartMarkerCommands.map((cmdObj) => (
+          <div key={cmdObj.code}>{cmdObj.displayName}</div>
+        ))
+        : <div>Awaiting Connection...</div>
+      }
+     {
+        bleContext.connectionState == 2
+        ? bleContext.characteristics.map((char) => (
+          <div >{char.uuid}</div>
+        ))
+        : <div>Awaiting Characterisics...</div>
+      }
+    </main>
+  )
 }
 
 export default App;
