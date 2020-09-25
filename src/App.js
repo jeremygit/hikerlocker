@@ -21,6 +21,10 @@ function AppMain() {
     bleContext.startScan(evt);
   }
 
+  const onSelectChar = (uuid) => (evt) => {
+    bleContext.executeCharactersitic(uuid);
+  }
+
   return (
     <main>
       <h2>Hikerlocker {bleContext.connectionState}</h2>
@@ -35,7 +39,7 @@ function AppMain() {
      {
         bleContext.connectionState == 2
         ? bleContext.characteristics.map((char) => (
-          <div >{char.uuid}</div>
+          <div key={char.uuid} onClick={onSelectChar(char.uuid)}>{char.uuid}</div>
         ))
         : <div>Awaiting Characterisics...</div>
       }
