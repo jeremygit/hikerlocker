@@ -111,8 +111,8 @@ export const BLEContextProvider = ({ children }) => {
 
   const bleWriteValue = async () => {
     try {
-      const testData = new Uint8Array([1]);
-      const res = await state.currentCharacteristic.writeValueWithResponse(testData);
+      const testData = new Uint8Array([1]); // writeValueWithResponse
+      const res = await state.currentCharacteristic.writeValue(testData);
       console.log('res', res);
     } catch (err) {
       // handle write error
@@ -121,16 +121,18 @@ export const BLEContextProvider = ({ children }) => {
     }
   }
 
-  const bleReadSharedValue = () => {
+  const bleReadSharedValue = async () => {
     try {
       state.currentCharacteristic.addEventListener('characteristicvaluechanged', bleReadValueChanged);
-      state.currentCharacteristic.readValue();
+      const res = await state.currentCharacteristic.readValue();
+      console.log('res', res);
     } catch (err) {
       console.log(err);
     }
   }
 
   const bleReadValueChanged = (evt) => {
+    console.log('bleReadValueChanged');
     const decoder = new TextDecoder('utf-8');
     console.log(decoder.decode(evt.target.value));
   }
@@ -139,24 +141,29 @@ export const BLEContextProvider = ({ children }) => {
     // if is set...
     if (state.currentCharacteristic) {
       // if for writing
-      // bleWriteValue();
+      bleWriteValue();
 
       // if notifying
       // bleNotifyValue();
 
       // if value for reading
-      bleReadSharedValue();
+      // bleReadSharedValue();
     }
     return () => {
       // if change
     };
-  }, [state.currentCharacteristic])
+  }, [state.currentCharacteristic]);
+
+  const executeCommand = () => {
+    bleWriteValue();
+  }
 
   return (
     <BLEContext.Provider value={
       {...state, 
         startScan: startScan,
         executeCharactersitic, executeCharactersitic,
+        executeCommand, executeCommand,
         text: 'text',
         smartMarkerCommands: HIKER_SMARTMARKER_CMD,
       }

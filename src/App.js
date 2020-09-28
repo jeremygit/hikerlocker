@@ -25,6 +25,10 @@ function AppMain() {
     bleContext.executeCharactersitic(uuid);
   }
 
+  const onClickReadWrite = () => {
+    bleContext.executeCommand();
+  }
+
   return (
     <main>
       <h2>Hikerlocker {bleContext.connectionState}</h2>
@@ -42,6 +46,11 @@ function AppMain() {
           <div key={char.uuid} onClick={onSelectChar(char.uuid)}>{char.uuid}</div>
         ))
         : <div>Awaiting Characterisics...</div>
+      }
+      {
+        bleContext.currentCharacteristic
+        ? <button onClick={onClickReadWrite}>Read/Write</button>
+        : null
       }
     </main>
   )
