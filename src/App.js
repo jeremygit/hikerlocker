@@ -6,6 +6,7 @@ import { BLEContext, BLEContextProvider } from './contexts/BLEContext';
 import Container from '@material-ui/core/Container';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
+import { AppBar, Toolbar } from '@material-ui/core';
 
 function App() {
   return (
@@ -34,31 +35,39 @@ function AppMain() {
   }
 
   return (
-    <Container>
-      <Box my={4}>
-        <h2>Hikerlocker {bleContext.connectionState}</h2>
-        <Button variant="contained" color="primary" onClick={onClickScan}>Scan</Button>
-        {
-          bleContext.connectionState == 2
-          ? bleContext.smartMarkerCommands.map((cmdObj) => (
-            <div key={cmdObj.code}>{cmdObj.displayName}</div>
-          ))
-          : <div>Awaiting Connection...</div>
-        }
-        {
-          bleContext.connectionState == 2
-          ? bleContext.characteristics.map((char) => (
-            <div key={char.uuid} onClick={onSelectChar(char.uuid)}>{char.uuid}</div>
-          ))
-          : <div>Awaiting Characterisics...</div>
-        }
-        {
-          bleContext.currentCharacteristic
-          ? <Button variant="contained" color="primary" onClick={onClickReadWrite}>Read/Write</Button>
-          : null
-        }
-      </Box>
-    </Container>
+    <>
+      <AppBar position="fixed">
+        <Toolbar>
+          <h2>Hikerlocker {bleContext.connectionState}</h2>
+        </Toolbar>
+      </AppBar>
+      <Toolbar/>
+      <Container>
+        <Box my={4}>
+        
+          <Button variant="contained" color="primary" onClick={onClickScan}>Scan</Button>
+          {
+            bleContext.connectionState == 2
+            ? bleContext.smartMarkerCommands.map((cmdObj) => (
+              <div key={cmdObj.code}>{cmdObj.displayName}</div>
+            ))
+            : <div>Awaiting Connection...</div>
+          }
+          {
+            bleContext.connectionState == 2
+            ? bleContext.characteristics.map((char) => (
+              <div key={char.uuid} onClick={onSelectChar(char.uuid)}>{char.uuid}</div>
+            ))
+            : <div>Awaiting Characterisics...</div>
+          }
+          {
+            bleContext.currentCharacteristic
+            ? <Button variant="contained" color="primary" onClick={onClickReadWrite}>Read/Write</Button>
+            : null
+          }
+        </Box>
+      </Container>
+    </>
   )
 }
 
