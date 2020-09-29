@@ -3,6 +3,10 @@ import logo from './logo.svg';
 import './App.css';
 import { BLEContext, BLEContextProvider } from './contexts/BLEContext';
 
+import Container from '@material-ui/core/Container';
+import Box from '@material-ui/core/Box';
+import Button from '@material-ui/core/Button';
+
 function App() {
   return (
     <BLEContextProvider>
@@ -30,29 +34,31 @@ function AppMain() {
   }
 
   return (
-    <main>
-      <h2>Hikerlocker {bleContext.connectionState}</h2>
-      <button onClick={onClickScan}>Scan</button>
-      {
-        bleContext.connectionState == 2
-        ? bleContext.smartMarkerCommands.map((cmdObj) => (
-          <div key={cmdObj.code}>{cmdObj.displayName}</div>
-        ))
-        : <div>Awaiting Connection...</div>
-      }
-     {
-        bleContext.connectionState == 2
-        ? bleContext.characteristics.map((char) => (
-          <div key={char.uuid} onClick={onSelectChar(char.uuid)}>{char.uuid}</div>
-        ))
-        : <div>Awaiting Characterisics...</div>
-      }
-      {
-        bleContext.currentCharacteristic
-        ? <button onClick={onClickReadWrite}>Read/Write</button>
-        : null
-      }
-    </main>
+    <Container>
+      <Box my={4}>
+        <h2>Hikerlocker {bleContext.connectionState}</h2>
+        <Button variant="contained" color="primary" onClick={onClickScan}>Scan</Button>
+        {
+          bleContext.connectionState == 2
+          ? bleContext.smartMarkerCommands.map((cmdObj) => (
+            <div key={cmdObj.code}>{cmdObj.displayName}</div>
+          ))
+          : <div>Awaiting Connection...</div>
+        }
+        {
+          bleContext.connectionState == 2
+          ? bleContext.characteristics.map((char) => (
+            <div key={char.uuid} onClick={onSelectChar(char.uuid)}>{char.uuid}</div>
+          ))
+          : <div>Awaiting Characterisics...</div>
+        }
+        {
+          bleContext.currentCharacteristic
+          ? <Button variant="contained" color="primary" onClick={onClickReadWrite}>Read/Write</Button>
+          : null
+        }
+      </Box>
+    </Container>
   )
 }
 
