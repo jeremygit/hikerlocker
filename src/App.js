@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { BLEContext, BLEContextProvider } from './contexts/BLEContext';
+import { AuthContext, AuthContextProvider } from './contexts/AuthContext';
 
 import Container from '@material-ui/core/Container';
 import Box from '@material-ui/core/Box';
@@ -10,17 +11,21 @@ import { AppBar, Toolbar } from '@material-ui/core';
 
 function App() {
   return (
+    <AuthContextProvider>
     <BLEContextProvider>
       <div className="App">
         <AppMain />
       </div>
     </BLEContextProvider>
+    </AuthContextProvider>
   );
 }
 
 function AppMain() {
 
   const bleContext = useContext(BLEContext);
+
+  const authContext = useContext(AuthContext);
 
   const onClickScan = (evt) => {
     bleContext.startScan(evt);
@@ -39,6 +44,7 @@ function AppMain() {
       <AppBar position="fixed">
         <Toolbar>
           <h2>Hikerlocker {bleContext.connectionState}</h2>
+          <AuthToolbar/>
         </Toolbar>
       </AppBar>
       <Toolbar/>
@@ -68,6 +74,27 @@ function AppMain() {
         </Box>
       </Container>
     </>
+  )
+}
+
+const AuthToolbar = () => {
+
+  const authContext = useContext(AuthContext);
+
+  const onLogoutClick = () => {
+    authContext.logout();
+  }
+
+  const onLoginClick = () => {
+    authContext.login();
+  }
+
+  return (
+    authContext.initialized
+    ? authContext.authUser
+      ? <Button onClick={onLogoutClick}>{authContext.authUser.username} (Logout)</Button>
+      : <Button onClick={onLoginClick}>Login</Button>
+    : <span>...</span>
   )
 }
 
