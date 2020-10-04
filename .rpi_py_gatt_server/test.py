@@ -74,6 +74,7 @@ def main():
   ta.on('char_write', handle_char_write)
   hlserver.setApplication(ta)
   hlserver.setAdvertisement(ta.advertisement)
+  # hlserver.startAdvertising()
 
 
 
