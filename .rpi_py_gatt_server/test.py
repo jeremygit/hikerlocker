@@ -40,6 +40,7 @@ class TestPrimaryService(BLEService):
     pass
 
   def handle_char_write(self, char, data):
+    print('TestPrimaryService handle_char_write')
     self.emit('char_write', char, data)
 
 class TestAdvert(BLEAdvertisement):
@@ -59,6 +60,7 @@ class TestApplication(BLEApplication):
     self.advertisement = TestAdvert(server.bus, 0)
   
   def handle_char_write(self, char, data):
+    print('TestApplication handle_char_write')
     self.emit('char_write', char, data)
 
 
@@ -66,7 +68,7 @@ class TestApplication(BLEApplication):
 #   print('ready...')
 
 def handle_char_write(char, data):
-  pass
+  print('application did write')
 
 def main():
   hlserver = HikerlockerGattServer()
@@ -74,7 +76,7 @@ def main():
   ta.on('char_write', handle_char_write)
   hlserver.setApplication(ta)
   hlserver.setAdvertisement(ta.advertisement)
-  # hlserver.startAdvertising()
+  hlserver.startAdvertising()
 
 
 

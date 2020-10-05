@@ -282,8 +282,19 @@ class HikerlockerGattServer(BaseEventEmitter):
 
     if (self.adapter == None):
       raise Exception('No adapter found')
+
+    self.app_service_manager = dbus.Interface(
+      self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter), GATT_MANAGER_IFACE)
+
+    self.advertisement_manager = dbus.Interface(
+      self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter), LE_ADVERTISING_MANAGER_IFACE)
   
   def startAdvertising(self):
+    # Power on BLE
+    adapter_props = dbus.Interface(
+      self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter), DBUS_PROP_IFACE)
+    adapter_props.Set(ADAPTER_IFACE, 'Powered', dbus.Boolean(1))
+
     try:
       print('mainloop.run')
       self.mainloop.run()
@@ -294,6 +305,18 @@ class HikerlockerGattServer(BaseEventEmitter):
 
   def testExec(self):
     self.emit('ready')
+
+  def handle_advertisement_success(self):
+    print('handle_advertisement_success')
+
+  def handle_advertisement_error(self):
+    print('handle_advertisement_error')
+  
+  def handle_application_success(self):
+    print('handle_application_success')
+  
+  def handle_application_error(self):
+    print('handle_application_error')
 
   def find_adapter(self):
     remote_om = dbus.Interface(
@@ -309,6 +332,12 @@ class HikerlockerGattServer(BaseEventEmitter):
   
   def setAdvertisement(self, advertisement):
     self.advertisement = advertisement
+    self.advertisement_manager.RegisterAdvertisement(advertisement.get_path(), {},
+      reply_handler=self.handle_advertisement_success,
+      error_handler=self.handle_advertisement_error)
 
   def setApplication(self, application):
     self.application = application
+    self.app_service_manager.RegisterApplication(application.get_path(), {},
+      reply_handler=self.handle_application_success,
+      error_handler=self.handle_application_error)
