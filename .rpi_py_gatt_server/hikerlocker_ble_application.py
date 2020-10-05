@@ -23,10 +23,6 @@ class TestCharacteristic(BLECharacteristic):
     print('TestCharacteristic Write: ' + repr(value))
     self.emit('value', self, self.value)
     self.value = value
-  
-
-from ble.lib import *
-import dbus
 
 class TestPrimaryService(BLEService):
 
