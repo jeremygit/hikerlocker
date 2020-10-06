@@ -18,6 +18,7 @@ class HikerlockerTest():
   def handle_char_in(self, char, data):
     print('application did write')
     for i in range(0, 10):
+      print('setting data...')
       self.hl_app.set_user_data(2)
       time.sleep(1)
 

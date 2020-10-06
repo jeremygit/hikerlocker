@@ -46,8 +46,10 @@ export const BLEContextProvider = ({ children }) => {
       });
 
       device.addEventListener('gattserverdisconnected', () => {
-        alert('disconnected');
-        setState({...state, connectionState: BLE_CONNECTION_STATE.DISCONNECTED});
+        setState({...state, 
+          connectionState: BLE_CONNECTION_STATE.DISCONNECTED,
+          device: null,
+        });
       });
 
       // connect to the gatt server
@@ -180,6 +182,12 @@ export const BLEContextProvider = ({ children }) => {
     bleWriteValue();
   }
 
+  const disconnect = () => {
+    if (state.device) {
+      state.device.gatt.disconnect();
+    }
+  }
+
   return (
     <BLEContext.Provider value={
       {...state, 
@@ -190,6 +198,7 @@ export const BLEContextProvider = ({ children }) => {
         text: 'text',
         smartMarkerCommands: HIKER_SMARTMARKER_CMD,
         BLE_CHARACTERISTIC_CMD: BLE_CHARACTERISTIC_CMD,
+        disconnect: disconnect,
       }
     }>
     {children}

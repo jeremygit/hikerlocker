@@ -64,10 +64,6 @@ const HikerlockerMainScreen = (props) => {
     bleContext.startScan(evt);
   }
 
-  const onSelectChar = (uuid) => (evt) => {
-    bleContext.executeBLECommand(uuid);
-  }
-
   const onClickReadWrite = () => {
     bleContext.executeCommand();
   }
@@ -81,15 +77,6 @@ const HikerlockerMainScreen = (props) => {
         <Box>
           <Button variant="contained" color="primary" onClick={onClickScan}>Scan</Button>
           {
-            bleContext.connectionState == 2
-            ? bleContext.characteristics.map((char) => (
-              <div key={char.uuid} onClick={onSelectChar(char.uuid)}>
-                { bleContext.BLE_CHARACTERISTIC_CMD[char.uuid].name }
-              </div>
-            ))
-            : <div>Begin by scanning...</div>
-          }
-          {
             bleContext.currentCharacteristic
             ? <Button variant="contained" color="primary" onClick={onClickReadWrite}>Read/Write</Button>
             : null
@@ -100,30 +87,63 @@ const HikerlockerMainScreen = (props) => {
   )
 }
 
+
+
+/*
+  <Container>
+<Box>
+  <IconButton><ArrowBackIcon/></IconButton>
+</Box>
+<Card my="auto" style={{backgroundColor: '#fc7d48', color: '#fed8c1'}}>
+  <CardContent>
+    <div><PhonelinkRingIcon/></div>
+    <div><Typography variant="h5" component="h2">Log Visit</Typography></div>
+  </CardContent>
+</Card>
+<Card style={{backgroundColor: '#ef4335', color: '#fed8c1'}}>
+  <CardContent>
+    <div><MobileFriendlyIcon/></div>
+    <div><Typography variant="h5" component="h2">Check-in</Typography></div>
+  </CardContent>
+</Card>
+<Card style={{backgroundColor: '#c9223e', color: '#fed8c1'}}>
+  <CardContent>
+    <div><PhonelinkEraseIcon/></div>
+    <div><Typography variant="h5" component="h2">Check-out</Typography></div>
+  </CardContent>
+</Card>
+</Container>
+*/
+
 const HikerlockerMenuScreen = (props) => {
+
+  const bleContext = useContext(BLEContext);
+
+  const onClickBack = () => {
+    bleContext.disconnect();
+  }
+
+  const onSelectChar = (uuid) => (evt) => {
+    bleContext.executeBLECommand(uuid);
+  }
+
   return (
     <Container>
       <Box>
-        <IconButton><ArrowBackIcon/></IconButton>
+        <IconButton onClick={onClickBack}><ArrowBackIcon/></IconButton>
       </Box>
-      <Card my="auto" style={{backgroundColor: '#fc7d48', color: '#fed8c1'}}>
-        <CardContent>
-          <div><PhonelinkRingIcon/></div>
-          <div><Typography variant="h5" component="h2">Log Visit</Typography></div>
-        </CardContent>
-      </Card>
-      <Card style={{backgroundColor: '#ef4335', color: '#fed8c1'}}>
-        <CardContent>
-          <div><MobileFriendlyIcon/></div>
-          <div><Typography variant="h5" component="h2">Check-in</Typography></div>
-        </CardContent>
-      </Card>
-      <Card style={{backgroundColor: '#c9223e', color: '#fed8c1'}}>
-        <CardContent>
-          <div><PhonelinkEraseIcon/></div>
-          <div><Typography variant="h5" component="h2">Check-out</Typography></div>
-        </CardContent>
-      </Card>
+      {
+      bleContext.connectionState == 2
+      ? bleContext.characteristics.map((char) => (
+        <Card my="auto" style={{backgroundColor: '#fc7d48', color: '#fed8c1'}} key={char.uuid} onClick={onSelectChar(char.uuid)}>
+          <CardContent>
+            <div><PhonelinkRingIcon/></div>
+            <div><Typography variant="h5" component="h2">{bleContext.BLE_CHARACTERISTIC_CMD[char.uuid].name }</Typography></div>
+          </CardContent>
+        </Card>
+      ))
+      : (null)
+      }
     </Container>
   )
 }
