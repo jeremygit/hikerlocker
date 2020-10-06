@@ -20,6 +20,12 @@ const BLE_CONNECTION_STATE = {
   'CONNECTED': 2,
 };
 
+const BLE_CHARACTERISTIC_CMD = {
+  'ffffffff-eeee-eeee-eeee-dddd00000001': {
+    name: 'Log Visit',
+  }
+};
+
 export const BLEContextProvider = ({ children }) => {
 
   const [state, setState] = useState({
