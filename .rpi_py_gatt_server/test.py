@@ -4,7 +4,7 @@ def handle_char_write(char, data):
   print('application did write')
 
 def main():
-  hlserver = HikerlockerGattServer()
+  hlserver = BLEGattServer()
   ta = TestApplication(hlserver)
   ta.on('char_write', handle_char_write)
   hlserver.setApplication(ta)

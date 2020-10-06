@@ -265,7 +265,7 @@ class BLEAdvertisement(dbus.service.Object, BaseEventEmitter):
   def Release(self):
     print('%s: Released!' % self.path)
 
-class HikerlockerGattServer(BaseEventEmitter):
+class BLEGattServer(BaseEventEmitter):
   def __init__(self):
     BaseEventEmitter.__init__(self)
 
