@@ -35,14 +35,18 @@ class BLECharacteristic(dbus.service.Object, BaseEventEmitter):
     self.service = service
     self.flags = flags
     self.descriptors = []
+    self.value = [0]
+    self.notifying = False
     dbus.service.Object.__init__(self, bus, self.path)
   
   def get_properties(self):
     return {
       GATT_CHRC_IFACE: {
-        'Service': self.service.get_path(),
         'UUID': self.uuid,
+        'Service': self.service.get_path(),
         'Flags': self.flags,
+        'Value': self.value,
+        'Notifying': self.notifying,
         'Descriptors': dbus.Array(self.get_descriptors(), signature='o')
       }
     }
@@ -69,25 +73,55 @@ class BLECharacteristic(dbus.service.Object, BaseEventEmitter):
     if interface != GATT_CHRC_IFACE:
       raise InvalidArgsException()
     return self.get_properties()[GATT_CHRC_IFACE]
+
+  @dbus.service.method(DBUS_PROP_IFACE,
+    in_signature='ssv', out_signature='')
+  def Set(self, interface, prop, value, *args, **kwargs):
+    if interface != GATT_CHRC_IFACE:
+      raise InvalidArgsException()
+    # if prop no in self properties
+    if (prop == 'Value'):
+      self.value = value
+    
+    if (prop == 'Notifying'):
+      self.notifying = value
+
+    return self.PropertiesChanged(GATT_CHRC_IFACE,
+      self.bus, dbus.Dictionary({prop: value}, signature='sv'),
+      dbus.Array([], signature='s'))
   
+  @dbus.service.method(DBUS_PROP_IFACE,
+    signature='sa{sv}as')
+  def PropertiesChanged(self, interface, changed, invalidated):
+    print('change event emitted by dbus')
+
+
   @dbus.service.method(GATT_CHRC_IFACE,
     in_signature='a{sv}', out_signature='ay')
   def ReadValue(self, options):
-    raise NotSupportedException()
+    # raise NotSupportedException()
+    # default
+    return self.GetAll(GATT_CHRC_IFACE)['Value']
 
     #in sig was 'ay'
   @dbus.service.method(GATT_CHRC_IFACE,
     in_signature='aya{sv}')
   def WriteValue(self, value, options):
-    raise NotSupportedException()
+    # raise NotSupportedException()
+    # default
+    self.Set(GATT_CHRC_IFACE, 'Value', [value])
 
   @dbus.service.method(GATT_CHRC_IFACE)
   def StartNotify(self):
-    raise NotSupportedException()
+    print('StartNotify')
+    self.Set(GATT_CHRC_IFACE, 'Notifying', dbus.Boolean(True))
+    # raise NotSupportedException()
 
   @dbus.service.method(GATT_CHRC_IFACE)
   def StopNotify(self):
-    raise NotSupportedException()
+    print('StopNotify')
+    self.Set(GATT_CHRC_IFACE, 'Notifying', dbus.Boolean(False))
+    # raise NotSupportedException()
 
   @dbus.service.signal(DBUS_PROP_IFACE,
     signature='sa{sv}as')

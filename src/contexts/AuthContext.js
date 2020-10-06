@@ -17,7 +17,7 @@ export const AuthContextProvider = ({ children }) => {
   const login = () => {
     setAuthUser({
       username: 'Test User',
-      uuid: '1b9d6bcd-cafe-dead-beef-ab8dfbbd4bed',
+      uuid: 'b8dfbbd4bed',
     });
   }
 

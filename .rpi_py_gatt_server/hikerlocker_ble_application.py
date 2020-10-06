@@ -8,24 +8,28 @@ class HikerlockerUserReadWriteCharacteristic(BLECharacteristic):
   def __init__(self, bus, index, service):
     BLECharacteristic.__init__(
       self, bus, index, self.UUID,
-      ['read', 'write', 'write-without-response', 'reliable-write', 'writable-auxiliaries'],
+      ['read','write', 'write-without-response', 'notify', 'reliable-write', 'writable-auxiliaries'],
       service)
-    self.value = []
 
   def ReadValue(self, options):
-    print('TestCharacteristic Read: ' + repr(self.value))
+    print('HikerlockerUserReadWriteCharacteristic Read: ' + repr(self.GetAll(GATT_CHRC_IFACE)['Value']))
     # val = self.value[0]
     # val = val + 1
     # self.value[0] = val
-    return self.value
+    #return self.value
+    return self.GetAll(GATT_CHRC_IFACE)['Value']
   
   def WriteValue(self, value, options):
-    print('TestCharacteristic Write: ' + repr(value))
-    self.emit('value', self, self.value)
-    self.value = value
+    print('HikerlockerUserReadWriteCharacteristic Write: ' + repr(value))
+    # self.value = value
+    self.emit('value', self, value)
+    self.Set(GATT_CHRC_IFACE, 'Value', value)
   
   def set_value(self, value):
-    self.value = [value]
+    print('HikerlockerUserReadWriteCharacteristic set_value' + repr(value))
+    # self.value[0] = value
+    # self.WriteValue(value)
+    self.Set(GATT_CHRC_IFACE, 'Value', [value])
     
 
 class HikerlockerPrimaryService(BLEService):
@@ -44,10 +48,11 @@ class HikerlockerPrimaryService(BLEService):
     pass
 
   def handle_char_write(self, char, data):
-    print('TestPrimaryService handle_char_write')
+    print('HikerlockerPrimaryService handle_char_write')
     self.emit('char_write', char, data)
 
   def set_user_data(self, data):
+    print('HikerlockerPrimaryService set_user_data')
     self.user_readwrite_char.set_value(data)
 
 class HikerlockerAdvertisement(BLEAdvertisement):
@@ -70,8 +75,9 @@ class HikerlockerApplication(BLEApplication):
     self.advertisement = HikerlockerAdvertisement(server.bus, 0, self.primary_service)
   
   def handle_char_write(self, char, data):
-    print('TestApplication handle_char_write')
+    print('HikerlockerApplication handle_char_write')
     self.emit('char_write', char, data)
   
   def set_user_data(self, data):
+    print('HikerlockerApplication set_user_data')
     self.primary_service.set_user_data(data)

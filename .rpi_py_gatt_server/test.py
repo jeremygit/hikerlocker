@@ -1,4 +1,5 @@
 from hikerlocker_ble_application import *
+import time
 
 class HikerlockerTest():
 
@@ -16,7 +17,9 @@ class HikerlockerTest():
 
   def handle_char_in(self, char, data):
     print('application did write')
-    self.hl_app.set_user_data('test')
+    for i in range(0, 10):
+      self.hl_app.set_user_data(2)
+      time.sleep(1)
 
 
 def main():
