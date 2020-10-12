@@ -115,16 +115,41 @@ const HikerlockerMainScreen = (props) => {
 </Container>
 */
 
+
 const HikerlockerMenuScreen = (props) => {
 
   const bleContext = useContext(BLEContext);
+
+  const authContext = useContext(AuthContext);
+
+  const MENU_COLORS = [
+    '#fc7d48',
+    '#ef4335',
+    '#c9223e'
+  ];
+
+  const MENU_ICONS = {
+    [bleContext.BLE_ROUTE_NAMES.LOG_VISIT]: <PhonelinkRingIcon/>,
+    [bleContext.BLE_ROUTE_NAMES.CHECK_IN]:  <MobileFriendlyIcon/>,
+    [bleContext.BLE_ROUTE_NAMES.CHECK_OUT]: <PhonelinkEraseIcon/>,
+  }
 
   const onClickBack = () => {
     bleContext.disconnect();
   }
 
   const onSelectChar = (uuid) => (evt) => {
-    bleContext.executeBLECommand(uuid);
+    try {
+      const route = bleContext.getCmdRoute(uuid);
+      switch (route) {
+        case bleContext.BLE_ROUTE_NAMES.LOG_VISIT:
+          return bleContext.logVisit(authContext.authUser.uuid);
+        default:
+          throw 'command not suported';
+      }
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   return (
@@ -134,10 +159,10 @@ const HikerlockerMenuScreen = (props) => {
       </Box>
       {
       bleContext.connectionState == 2
-      ? bleContext.characteristics.map((char) => (
-        <Card my="auto" style={{backgroundColor: '#fc7d48', color: '#fed8c1'}} key={char.uuid} onClick={onSelectChar(char.uuid)}>
+      ? bleContext.characteristics.map((char, i) => (
+        <Card my="auto" style={{backgroundColor: MENU_COLORS[i], color: '#fed8c1'}} key={char.uuid} onClick={onSelectChar(char.uuid)}>
           <CardContent>
-            <div><PhonelinkRingIcon/></div>
+            <div>{MENU_ICONS[bleContext.BLE_CHARACTERISTIC_CMD[char.uuid].route]}</div>
             <div><Typography variant="h5" component="h2">{bleContext.BLE_CHARACTERISTIC_CMD[char.uuid].name }</Typography></div>
           </CardContent>
         </Card>

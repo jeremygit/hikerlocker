@@ -1,5 +1,6 @@
 from hikerlocker_ble_application import *
 import time
+import json
 
 class HikerlockerTest():
 
@@ -17,10 +18,19 @@ class HikerlockerTest():
 
   def handle_char_in(self, char, data):
     print('application did write')
-    for i in range(0, 10):
-      print('setting data...')
-      self.hl_app.set_user_data(2)
-      time.sleep(1)
+    print('data')
+    data = bytes(data).decode()
+    print(data)
+    print('setting data...')
+    outgoing_data = {
+      'markerId': 'xxxxxxxxxxx',
+      'userVisits': [data, '00000000000']
+    }
+    print(outgoing_data)
+    outgoing_data = json.dumps(outgoing_data)
+    print(outgoing_data)
+    self.hl_app.set_user_data( BLEStringToBytes(outgoing_data) )
+    # time.sleep(1)
 
 
 def main():

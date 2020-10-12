@@ -1,6 +1,26 @@
 from ble.lib import *
 import dbus
 
+class HikerlockerCheckoutCharacteristic(BLECharacteristic):
+
+  UUID = 'ffffffff-eeee-eeee-eeee-dddd00000003'
+
+  def __init__(self, bus, index, service):
+    BLECharacteristic.__init__(
+      self, bus, index, self.UUID,
+      ['read','write', 'write-without-response', 'notify', 'reliable-write', 'writable-auxiliaries'],
+      service)
+
+class HikerlockerCheckinCharacteristic(BLECharacteristic):
+
+  UUID = 'ffffffff-eeee-eeee-eeee-dddd00000002'
+
+  def __init__(self, bus, index, service):
+    BLECharacteristic.__init__(
+      self, bus, index, self.UUID,
+      ['read','write', 'write-without-response', 'notify', 'reliable-write', 'writable-auxiliaries'],
+      service)
+
 class HikerlockerUserReadWriteCharacteristic(BLECharacteristic):
 
   UUID = 'ffffffff-eeee-eeee-eeee-dddd00000001'
@@ -29,7 +49,7 @@ class HikerlockerUserReadWriteCharacteristic(BLECharacteristic):
     print('HikerlockerUserReadWriteCharacteristic set_value' + repr(value))
     # self.value[0] = value
     # self.WriteValue(value)
-    self.Set(GATT_CHRC_IFACE, 'Value', [value])
+    self.Set(GATT_CHRC_IFACE, 'Value', value)
     
 
 class HikerlockerPrimaryService(BLEService):
@@ -43,6 +63,12 @@ class HikerlockerPrimaryService(BLEService):
     self.user_readwrite_char = HikerlockerUserReadWriteCharacteristic(bus, 0, self)
     self.user_readwrite_char.on('value', self.handle_char_write)
     self.add_characteristic(self.user_readwrite_char)
+
+    self.checkin_char = HikerlockerCheckinCharacteristic(bus, 1, self)
+    self.add_characteristic(self.checkin_char)
+
+    self.checkout_char = HikerlockerCheckoutCharacteristic(bus, 2, self)
+    self.add_characteristic(self.checkout_char)
   
   def set_read_char(self, uuid, data):
     pass

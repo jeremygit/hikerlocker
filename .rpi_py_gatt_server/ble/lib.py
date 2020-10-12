@@ -19,6 +19,9 @@ GATT_CHRC_IFACE =               'org.bluez.GattCharacteristic1'
 
 MAINLOOP = None
 
+def BLEStringToBytes(str):
+    return dbus.Array([dbus.Byte(ord(letter)) for letter in str], 'y')
+
 class InvalidArgsException(dbus.exceptions.DBusException):
   _dbus_error_name = 'org.freedesktop.DBus.Error.InvalidArgs'
 

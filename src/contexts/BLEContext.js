@@ -14,6 +14,18 @@ const HIKER_SMARTMARKER_CMD = [
   {code: 2, displayName: 'Check-out'},
 ];
 
+const BLE_CHARACTERISTICS = {
+  LOG_VISIT: 'ffffffff-eeee-eeee-eeee-dddd00000001',
+  CHECK_IN: 'ffffffff-eeee-eeee-eeee-dddd00000002',
+  CHECK_OUT: 'ffffffff-eeee-eeee-eeee-dddd00000003',
+}
+
+const BLE_ROUTE_NAMES = {
+  LOG_VISIT: 'log-visit',
+  CHECK_IN: 'check-in',
+  CHECK_OUT: 'check-out',
+}
+
 const BLE_CONNECTION_STATE = {
   'DISCONNECTED': 0,
   'CONNECTING': 1,
@@ -21,9 +33,24 @@ const BLE_CONNECTION_STATE = {
 };
 
 const BLE_CHARACTERISTIC_CMD = {
-  'ffffffff-eeee-eeee-eeee-dddd00000001': {
+  [BLE_CHARACTERISTICS.LOG_VISIT]: {
+    route: BLE_ROUTE_NAMES.LOG_VISIT,
     name: 'Log Visit',
-  }
+  },
+  [BLE_CHARACTERISTICS.CHECK_IN]: {
+    route: BLE_ROUTE_NAMES.CHECK_IN,
+    name: 'Check In',
+  }, 
+  [BLE_CHARACTERISTICS.CHECK_OUT]: {
+    route: BLE_ROUTE_NAMES.CHECK_OUT,
+    name: 'Check Out',
+  },
+};
+
+const BLE_TRANSFER_STATUS = {
+  READY: 0,
+  IN_PROGRESS: 1,
+  COMPLETE: 2,
 };
 
 export const BLEContextProvider = ({ children }) => {
@@ -34,6 +61,7 @@ export const BLEContextProvider = ({ children }) => {
     characteristics: null,
     currentCharacteristic: null,
     connectionState: BLE_CONNECTION_STATE.DISCONNECTED,
+    transferStatus: BLE_TRANSFER_STATUS.READY,
   });
 
   const startScan = async (evt) => {
@@ -90,47 +118,51 @@ export const BLEContextProvider = ({ children }) => {
     return state.characteristics.find((char) => char.uuid === uuid);
   }
 
-  const executeCharactersitic = async (uuid, data) => {
-    // set as current char, connect, write/read etc.
-    // - visit char = handleLogVisit etc.?
+  const executeBLECommand = async (uuid, data) => {
     try {
       const char = findCharacteristic(uuid);
-      console.log('char', char);
-      setState({...state, currentCharacteristic: char});
-    } catch (err) {
-      // handle  error
-      console.log(err);
-    }
-  }
-
-  const executeBLECommand = async (uuid) => {
-    try {
-      const char = findCharacteristic(uuid);
-
-      const testData = new Uint8Array([1]); // writeValueWithResponse
-      const res = await char.writeValue(testData);
-
-      char.addEventListener('characteristicvaluechanged', bleNotifyValueChanged);
-      const res_notify = await char.readValue();
+      routeCommand(uuid, char, data);
       // const res_notify = await char.startNotifications();
     } catch (err) {
       console.log(err);
     }
   }
 
+  const routeCommand = async (uuid, char, data) => {
+    switch (BLE_CHARACTERISTIC_CMD[uuid].route) {
+      case 'log-visit': return performLogVisit(char, data);
+      default: 
+        throw 'command didnt exist';
+    }
+  }
+
+  const performLogVisit = async (char, data) => {
+    setState({...state, transferStatus: BLE_TRANSFER_STATUS.IN_PROGRESS});
+    const userId = bleEncodeString(data);
+    // const testData = new Uint8Array([1]); // writeValueWithResponse
+    const res = await char.writeValue(userId);
+
+    char.oncharacteristicvaluechanged = bleNotifyValueChanged;
+    const res_notify = await char.readValue();
+  }
+
   const bleNotifyValue = async () => {
     try {
-      state.currentCharacteristic.addEventListener('characteristicvaluechanged', bleNotifyValueChanged);
+      state.currentCharacteristic.oncharacteristicvaluechanged = bleNotifyValueChanged;
       state.currentCharacteristic.startNotifications();
     } catch (err) {
       console.log(err);
     }
   }
 
-  const bleNotifyValueChanged = (evt) => {
-    alert();
+  const bleNotifyValueChanged = (evt, char) => {
+    setState({...state, transferStatus: BLE_TRANSFER_STATUS.COMPLETE});
     const decoder = new TextDecoder('utf-8');
+    const jsonStr = decoder.decode(evt.target.value);
+    const jsonData =  JSON.parse(jsonStr);
+    alert(jsonStr);
     console.log(decoder.decode(evt.target.value));
+    setState({...state, transferStatus: BLE_TRANSFER_STATUS.READY});
   }
 
   const bleWriteValue = async () => {
@@ -138,6 +170,7 @@ export const BLEContextProvider = ({ children }) => {
       const testData = new Uint8Array([1]); // writeValueWithResponse
       const res = await state.currentCharacteristic.writeValue(testData);
       console.log('res', res);
+
     } catch (err) {
       // handle write error
       // DOMException: GATT operation failed for unknown reason.
@@ -188,17 +221,34 @@ export const BLEContextProvider = ({ children }) => {
     }
   }
 
+  const bleEncodeString = (str) => {
+    return new TextEncoder('utf-8').encode(`${str}`);
+  }
+
+  const getCmdRoute = (uuid) => {
+    if (!BLE_CHARACTERISTIC_CMD[uuid]) {
+      throw 'command not a valid';
+    }
+    return BLE_CHARACTERISTIC_CMD[uuid].route;
+  }
+
+  const logVisit = (userUUID) => {
+    return executeBLECommand(BLE_CHARACTERISTICS.LOG_VISIT, userUUID);
+  }
+
   return (
     <BLEContext.Provider value={
       {...state, 
         startScan: startScan,
-        executeCharactersitic: executeCharactersitic,
         executeCommand: executeCommand,
         executeBLECommand: executeBLECommand,
         text: 'text',
+        disconnect: disconnect,
+        getCmdRoute: getCmdRoute,
+        logVisit: logVisit,
         smartMarkerCommands: HIKER_SMARTMARKER_CMD,
         BLE_CHARACTERISTIC_CMD: BLE_CHARACTERISTIC_CMD,
-        disconnect: disconnect,
+        BLE_ROUTE_NAMES: BLE_ROUTE_NAMES,
       }
     }>
     {children}
