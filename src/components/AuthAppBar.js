@@ -64,11 +64,11 @@ const ToolBarConnectivity = (props) => {
   const bleContext = useContext(BLEContext);
 
   if (bleContext.connectionState == 0) {
-    return (<IconButton><BluetoothDisabledIcon/></IconButton>)
+    return (<IconButton><BluetoothDisabledIcon style={{color: '#fd3939'}}/></IconButton>)
   } else if (bleContext.connectionState == 1) {
     return (<IconButton><BluetoothSearchingIcon/></IconButton>)
   } else {
-    return (<IconButton><BluetoothConnected/></IconButton>)
+    return (<IconButton><BluetoothConnected style={{color: '#00d889'}}/></IconButton>)
   }
 }
 

@@ -8,12 +8,6 @@ const HIKER_BLE_SERVICES = [
   BLE_PRIMARY_SERVICE,
 ];
 
-const HIKER_SMARTMARKER_CMD = [
-  {code: 0, displayName: 'Log Visit'},
-  {code: 1, displayName: 'Check-in'},
-  {code: 2, displayName: 'Check-out'},
-];
-
 const BLE_CHARACTERISTICS = {
   LOG_VISIT: 'ffffffff-eeee-eeee-eeee-dddd00000001',
   CHECK_IN: 'ffffffff-eeee-eeee-eeee-dddd00000002',
@@ -63,6 +57,8 @@ export const BLEContextProvider = ({ children }) => {
     connectionState: BLE_CONNECTION_STATE.DISCONNECTED,
     transferStatus: BLE_TRANSFER_STATUS.READY,
   });
+
+  const [bleDataIn, setBleDataIn] = useState(null);
 
   const startScan = async (evt) => {
     setState({...state, connectionState: BLE_CONNECTION_STATE.CONNECTING});
@@ -130,7 +126,7 @@ export const BLEContextProvider = ({ children }) => {
 
   const routeCommand = async (uuid, char, data) => {
     switch (BLE_CHARACTERISTIC_CMD[uuid].route) {
-      case 'log-visit': return performLogVisit(char, data);
+      case BLE_ROUTE_NAMES.LOG_VISIT: return performLogVisit(char, data);
       default: 
         throw 'command didnt exist';
     }
@@ -142,13 +138,13 @@ export const BLEContextProvider = ({ children }) => {
     // const testData = new Uint8Array([1]); // writeValueWithResponse
     const res = await char.writeValue(userId);
 
-    char.oncharacteristicvaluechanged = bleNotifyValueChanged;
+    char.oncharacteristicvaluechanged = bleReadValueChanged;
     const res_notify = await char.readValue();
   }
 
   const bleNotifyValue = async () => {
     try {
-      state.currentCharacteristic.oncharacteristicvaluechanged = bleNotifyValueChanged;
+      state.currentCharacteristic.oncharacteristicvaluechanged = bleReadValueChanged;
       state.currentCharacteristic.startNotifications();
     } catch (err) {
       console.log(err);
@@ -161,7 +157,6 @@ export const BLEContextProvider = ({ children }) => {
     const jsonStr = decoder.decode(evt.target.value);
     const jsonData =  JSON.parse(jsonStr);
     alert(jsonStr);
-    console.log(decoder.decode(evt.target.value));
     setState({...state, transferStatus: BLE_TRANSFER_STATUS.READY});
   }
 
@@ -189,9 +184,15 @@ export const BLEContextProvider = ({ children }) => {
   }
 
   const bleReadValueChanged = (evt) => {
-    console.log('bleReadValueChanged');
+    setState({...state, transferStatus: BLE_TRANSFER_STATUS.COMPLETE});
     const decoder = new TextDecoder('utf-8');
+    const jsonStr = decoder.decode(evt.target.value);
+    const jsonData =  JSON.parse(jsonStr);
     console.log(decoder.decode(evt.target.value));
+    setBleDataIn(jsonData);
+    setState({...state, transferStatus: BLE_TRANSFER_STATUS.READY});
+    console.log('bleDataIn', bleDataIn);
+    disconnect();
   }
 
   useEffect(() => {
@@ -236,6 +237,10 @@ export const BLEContextProvider = ({ children }) => {
     return executeBLECommand(BLE_CHARACTERISTICS.LOG_VISIT, userUUID);
   }
 
+  const clearBleDataIn = () => {
+    setBleDataIn(null);
+  }
+
   return (
     <BLEContext.Provider value={
       {...state, 
@@ -246,9 +251,10 @@ export const BLEContextProvider = ({ children }) => {
         disconnect: disconnect,
         getCmdRoute: getCmdRoute,
         logVisit: logVisit,
-        smartMarkerCommands: HIKER_SMARTMARKER_CMD,
         BLE_CHARACTERISTIC_CMD: BLE_CHARACTERISTIC_CMD,
         BLE_ROUTE_NAMES: BLE_ROUTE_NAMES,
+        bleDataIn: bleDataIn,
+        clearBleDataIn: clearBleDataIn,
       }
     }>
     {children}

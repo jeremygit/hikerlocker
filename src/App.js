@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { BLEContext, BLEContextProvider } from './contexts/BLEContext';
 import { AuthContext, AuthContextProvider } from './contexts/AuthContext';
 
@@ -14,11 +14,15 @@ import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import Typography from '@material-ui/core/Typography';
+import Drawer from '@material-ui/core/Drawer';
+
 import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
 import SettingsRemoteIcon from '@material-ui/icons/SettingsRemote';
 import RecordVoiceOverIcon from '@material-ui/icons/RecordVoiceOver';
 import PlaceIcon from '@material-ui/icons/Place';
 import HowToRegIcon from '@material-ui/icons/HowToReg';
+import CompassCalibrationIcon from '@material-ui/icons/CompassCalibration';
+import AssistantPhotoIcon from '@material-ui/icons/AssistantPhoto';
 
 import PhonelinkRingIcon from '@material-ui/icons/PhonelinkRing';
 import PhonelinkEraseIcon from '@material-ui/icons/PhonelinkErase';
@@ -52,6 +56,31 @@ function AppMain() {
         ? <HikerlockerMenuScreen/>
         : <HikerlockerMainScreen/>
       }
+      <Drawer 
+        anchor={'bottom'}
+        open={bleContext.bleDataIn ? true : false} 
+        onClose={() => {
+          bleContext.clearBleDataIn();
+        }}
+      >
+        {
+          bleContext.bleDataIn
+          ? <Container>
+              <Box>
+                <Box>
+                  <h3>Log Visit Success.</h3>
+                </Box>
+                <Box>
+                  <h4>User ID: <span style={{fontWeight: 'normal'}}>{bleContext.bleDataIn.userVisits[0]}</span></h4>
+                </Box>
+                <Box>
+                  <h4>Marker ID: <span style={{fontWeight: 'normal'}}>{bleContext.bleDataIn.markerId}</span></h4>
+                </Box>
+              </Box>
+            </Container>
+            : (null)
+        }
+      </Drawer>
     </>
   )
 }
@@ -69,24 +98,55 @@ const HikerlockerMainScreen = (props) => {
   }
 
   return (
-    <>
-      <Box>
+    <div className="user-interface" style={{}}>
+      <Box className="user-interface-upper" style={{
+        position: 'relative',
+      }}>
         <AppSVGGraphic/>
+        <Button 
+            onClick={onClickScan}
+            style={{
+              height: '200px',
+              maxWidth: '200px',
+              width: '200px',
+              position: 'absolute',
+              top: '50%',
+              left: '0px',
+              right: '0px',
+              margin: 'auto',
+              borderRadius: '100px',
+              // backgroundColor: '#ef4335',
+              // color: '#fed8c1',
+              backgroundColor: '#fed8c1',
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12)',
+            }}
+          >
+              <span style={{
+                display: 'block',
+              }}>
+                <CompassCalibrationIcon/>
+                <span style={{
+                  display: 'block',
+                }}>
+                    Scan Marker
+                  </span>
+              </span>
+
+          </Button>
       </Box>
-      <Container style={{backgroundColor: '#2b102a', color: '#fed8c1'}}>
-        <Box>
-          <Button variant="contained" color="primary" onClick={onClickScan}>Scan</Button>
-          {
-            bleContext.currentCharacteristic
-            ? <Button variant="contained" color="primary" onClick={onClickReadWrite}>Read/Write</Button>
-            : null
-          }
+      {/*<Container style={{backgroundColor: '#2b102a', color: '#fed8c1'}}>*/}
+        <Box className="user-interface-lower" style={{
+          backgroundColor: '#2b102a', color: '#fed8c1',
+        }}>
         </Box>
-      </Container>
-    </>
+      {/*</Container>*/}
+    </div>
   )
 }
-
 
 
 /*
@@ -115,7 +175,6 @@ const HikerlockerMainScreen = (props) => {
 </Container>
 */
 
-
 const HikerlockerMenuScreen = (props) => {
 
   const bleContext = useContext(BLEContext);
@@ -129,7 +188,7 @@ const HikerlockerMenuScreen = (props) => {
   ];
 
   const MENU_ICONS = {
-    [bleContext.BLE_ROUTE_NAMES.LOG_VISIT]: <PhonelinkRingIcon/>,
+    [bleContext.BLE_ROUTE_NAMES.LOG_VISIT]: <AssistantPhotoIcon/>,
     [bleContext.BLE_ROUTE_NAMES.CHECK_IN]:  <MobileFriendlyIcon/>,
     [bleContext.BLE_ROUTE_NAMES.CHECK_OUT]: <PhonelinkEraseIcon/>,
   }
@@ -160,7 +219,7 @@ const HikerlockerMenuScreen = (props) => {
       {
       bleContext.connectionState == 2
       ? bleContext.characteristics.map((char, i) => (
-        <Card my="auto" style={{backgroundColor: MENU_COLORS[i], color: '#fed8c1'}} key={char.uuid} onClick={onSelectChar(char.uuid)}>
+        <Card my="auto" style={{backgroundColor: MENU_COLORS[i], color: '#fed8c1', marginBottom: '15px'}} key={char.uuid} onClick={onSelectChar(char.uuid)}>
           <CardContent>
             <div>{MENU_ICONS[bleContext.BLE_CHARACTERISTIC_CMD[char.uuid].route]}</div>
             <div><Typography variant="h5" component="h2">{bleContext.BLE_CHARACTERISTIC_CMD[char.uuid].name }</Typography></div>
